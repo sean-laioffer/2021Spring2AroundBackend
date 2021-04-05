@@ -1,6 +1,7 @@
 package main
 
 import (
+	"mime/multipart"
     "reflect"
 
     "github.com/olivere/elastic/v7"
@@ -49,4 +50,14 @@ func getPostFromSearchResult(searchResult *elastic.SearchResult) []Post {
         posts = append(posts, p)
     }
     return posts
+}
+
+func savePost(post *Post, file multipart.File) error {
+    medialink, err := saveToGCS(file, post.Id)
+    if err != nil {
+        return err
+    }
+    post.Url = medialink
+
+    return saveToES(post, POST_INDEX, post.Id)
 }
